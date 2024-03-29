@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    restart: on-failure
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
+      MARIADB_DATABASE: books_db
+      MARIADB_USER: testUser
+      MARIADB_PASSWORD: t€5tP455W0RD
+    ports:
+      - "3307:3306"
+    networks:
+      bookAppNetwork:
+          ipv4_address: 172.20.0.2
+
+
+  nodejs:
+    container_name: nodejs
+    image: node:latest
+    ports:
+      - "3030:3000"
+    depends_on:
+      - mariadb
+    restart: on-failure
+    volumes:
+      - ./bookApp:/bookApp
+    working_dir: /bookApp
+    command: /bin/sh -c "npm install && npx nodemon app"
+    networks:
+      bookAppNetwork:
+          ipv4_address: 172.20.0.3
+
+
+networks:
+  bookAppNetwork:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.0.0/24"
